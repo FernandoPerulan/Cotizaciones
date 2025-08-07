@@ -1,7 +1,7 @@
 name: Actualizar Google Sheet
 
 on:
-  workflow_dispatch:  # o usá 'schedule:' para ejecutarlo automáticamente
+  workflow_dispatch:
 
 jobs:
   update_sheet:
@@ -17,8 +17,9 @@ jobs:
     - name: Crear archivo de credenciales
       run: printf '%s' "${{ secrets.GSHEET_CREDENTIALS_JSON }}" > credentials.json
 
-    - name: Crear archivo de credenciales
-      run: echo "${{ secrets.GSHEET_CREDENTIALS_JSON }}" > credentials.json
+    - name: Mostrar contenido credentials.json
+      run: cat credentials.json
 
     - name: Ejecutar script
       run: python main.py
+
