@@ -15,10 +15,7 @@ jobs:
       run: pip install gspread oauth2client
 
     - name: Crear archivo de credenciales
-      run: |
-        echo "$GSHEET_CREDENTIALS_JSON" > credentials.json
-      env:
-        GSHEET_CREDENTIALS_JSON: ${{ secrets.GSHEET_CREDENTIALS_JSON }}
+      run: echo '${{ secrets.GSHEET_CREDENTIALS_JSON }}' > credentials.json
 
     - name: Mostrar contenido credentials.json
       run: cat credentials.json
