@@ -1,18 +1,25 @@
-import yfinance as yf
-import json
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
-df = yf.download("AAPL", start="2024-01-01", end="2024-08-01")
-df.reset_index(inplace=True)
+# Configurar permisos requeridos por Sheets API
+scope = ["https://spreadsheets.google.com/feeds",
+         "https://www.googleapis.com/auth/drive"]
 
-# Elegimos algunas columnas útiles
-df = df[["Date", "Open", "High", "Low", "Close", "Volume"]]
+# Leer credenciales del archivo JSON
+creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+client = gspread.authorize(creds)
 
-# Convertimos las fechas a string (por compatibilidad)
-df["Date"] = df["Date"].astype(str)
+# Abrir la hoja por ID y seleccionar la hoja por nombre
+spreadsheet = client.open_by_key("1AfkLPUEPebyr5HP99f8BMuhzblME5WSN_kuf4kzM7t0")  #  Reemplaza con el ID real
+worksheet = spreadsheet.worksheet("Hoja1")         #  Reemplaza con el nombre real
 
-# Lo convertimos a lista de listas
-data = df.values.tolist()
+# Datos a insertar
+data = [
+    ["Nombre", "Edad", "Ciudad"],
+    ["Ana", 25, "Mendoza"],
+    ["Juan", 30, "San Rafael"]
+]
 
-# Guardamos en JSON para pasárselo al step siguiente
-with open("datos.json", "w") as f:
-    json.dump(data, f)
+# Agregar filas
+worksheet.append_rows(data)
+print("Datos escritos en Google Sheets.")

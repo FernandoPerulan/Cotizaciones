@@ -1,45 +1,21 @@
-name: Python básico
+name: Actualizar Google Sheet
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # o usá 'schedule:' para ejecutarlo automáticamente
 
 jobs:
-  run-python:
+  update_sheet:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+    - name: Clonar el repositorio
+      uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+    - name: Instalar dependencias
+      run: pip install gspread oauth2client
 
-      - run: pip install yfinance pandas
+    - name: Crear archivo de credenciales
+      run: echo "${{ secrets.GSHEET_CREDENTIALS_JSON }}" > credentials.json
 
-      - name: Ejecutar script de descarga
-        run: main.py
-
-      - name: Cargar JSON con cotizaciones
-        id: loadjson
-        run: |
-          echo "json_data<<EOF" >> $GITHUB_OUTPUT
-          cat datos.json >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Escribir en Google Sheet
-        uses: jroehl/gsheet.action@v2.1.1
-        with:
-          spreadsheetId: ${{ secrets.GSHEET_ID }}
-          credentials: ${{ secrets.GSHEET_CREDENTIALS }}
-          range: Hoja1!A:F
-          operation: append
-          values: ${{ steps.loadjson.outputs.json_data }}
-
-
-      - name: Escribir en Google Sheet
-        uses: jroehl/gsheets-action@v1.2.0
-        with:
-          spreadsheetId: ${{ secrets.GSHEET_ID }}
-          credentials: ${{ secrets.GSHEET_CREDENTIALS }}
-          range: Hoja1!A:F
-          operation: append
-          values: ${{ steps.loadjson.outputs.json_data }}
+    - name: Ejecutar script
+      run: python main.py
