@@ -26,6 +26,16 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Escribir en Google Sheet
+        uses: jroehl/gsheet.action@v2.1.1
+        with:
+          spreadsheetId: ${{ secrets.GSHEET_ID }}
+          credentials: ${{ secrets.GSHEET_CREDENTIALS }}
+          range: Hoja1!A:F
+          operation: append
+          values: ${{ steps.loadjson.outputs.json_data }}
+
+
+      - name: Escribir en Google Sheet
         uses: jroehl/gsheets-action@v1.2.0
         with:
           spreadsheetId: ${{ secrets.GSHEET_ID }}
