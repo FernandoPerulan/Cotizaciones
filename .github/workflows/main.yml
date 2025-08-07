@@ -1,0 +1,35 @@
+name: Python básico
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - run: pip install yfinance pandas
+
+      - name: Ejecutar script de descarga
+        run: main.py
+
+      - name: Cargar JSON con cotizaciones
+        id: loadjson
+        run: |
+          echo "json_data<<EOF" >> $GITHUB_OUTPUT
+          cat datos.json >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Escribir en Google Sheet
+        uses: jroehl/gsheets-action@v1.2.0
+        with:
+          spreadsheetId: ${{ secrets.GSHEET_ID }}
+          credentials: ${{ secrets.GSHEET_CREDENTIALS }}
+          range: Hoja1!A:F
+          operation: append
+          values: ${{ steps.loadjson.outputs.json_data }}
