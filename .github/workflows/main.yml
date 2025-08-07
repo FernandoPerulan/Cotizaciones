@@ -15,11 +15,11 @@ jobs:
       run: pip install gspread oauth2client
 
     - name: Crear archivo de credenciales
-      run: echo '${{ secrets.GSHEET_CREDENTIALS_JSON }}' > credentials.json
-
-    - name: Mostrar contenido credentials.json
-      run: cat credentials.json
-
+      run: |
+        echo '${{ secrets.GSHEET_CREDENTIALS_JSON }}' > credentials.json
+        sed -i 's/\\\\n/\\n/g' credentials.json
+    
     - name: Ejecutar script
       run: python main.py
+
 
