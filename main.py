@@ -1,41 +1,23 @@
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+import json
 
-# Mostrar contenido de credentials.json para debug
-try:
-    with open("credentials.json", "r") as f:
-        content = f.read()
-    print("Contenido de credentials.json:\n", content)
-except Exception as e:
-    print(f"Error al leer credentials.json: {e}")
-    exit(1)
+# Leer el archivo de credenciales
+with open("credentials.json") as f:
+    creds = json.load(f)
 
-# Configurar permisos requeridos por Sheets API
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/drive"
-]
+# Autenticarse con gspread
+gc = gspread.service_account_from_dict(creds)
 
-try:
-    # Leer credenciales del archivo JSON
-    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-    client = gspread.authorize(creds)
-except Exception as e:
-    print(f"Error al autenticar con Google Sheets: {e}")
-    exit(1)
+# Abrir la hoja de cálculo por nombre (asegurate que sea el correcto)
+spreadsheet = gc.open("cotizaciones")  # Reemplazá con el nombre exacto
 
-try:
-    # Abrir la hoja por ID
-    spreadsheet = client.open_by_key("1AfkLPUEPebyr5HP99f8BMuhzblME5WSN_kuf4kzM7t0")
-    worksheet = spreadsheet.worksheet("Hoja1")
-    
-    # Leer las primeras 5 filas para verificar conexión
-    rows = worksheet.get_all_values()[:5]
-    print("Primeras filas de la hoja:")
-    for row in rows:
-        print(row)
-except Exception as e:
-    print(f"Error al acceder o leer la hoja: {e}")
-    exit(1)
+# Seleccionar la primera pestaña (worksheet)
+worksheet = spreadsheet.sheet1
 
-print("Autenticación y lectura exitosas.")
+# Fila de datos para escribir
+fila = ["Fernando", "Probando escritura", "2025-08-07"]
+
+# Agregar la fila al final de la hoja
+worksheet.append_row(fila)
+
+print("Fila agregada con éxito.")
