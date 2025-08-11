@@ -1,0 +1,19 @@
+# Credenciales de Google Sheets
+credentials.json
+
+# Carpetas temporales de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de entorno
+.env
+
+# Carpetas de dependencias (si existieran)
+venv/
+.venv/
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
