@@ -16,12 +16,12 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Crear archivo credentials.json
-      run: |
-        printf '%s' "${{ secrets.GSHEET_CREDENTIALS_JSON }}" > credentials.json
-
-    - name: Mostrar contenido de credentials.json
-      run: cat credentials.json
+    - name: Instalar dependencias
+      run: pip install dropbox
+    
+    - name: Ejecutar script de subida
+      env:
+            DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
 
     - name: Ejecutar script
       run: python main.py
