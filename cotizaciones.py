@@ -1,6 +1,6 @@
 # cotizaciones.py
 import yfinance as yf
-from openbb_terminal.sdk import openbb
+from openbb import obb
 import csv
 from datetime import datetime
 
@@ -14,12 +14,15 @@ def obtener_cotizaciones_yf(ticker, fecha_inicio):
     return data
 
 def obtener_cotizaciones_openbb(ticker, fecha_inicio):
-    inicio = datetime.strptime(fecha_inicio, "%d-%m-%Y")
-    data = openbb.stocks.load(
+    # Convertir la fecha de dd-mm-aaaa a YYYY-MM-DD
+    inicio = datetime.strptime(fecha_inicio, "%d-%m-%Y").strftime("%Y-%m-%d")
+    # Llamar a la API nueva de OpenBB para precios históricos
+    data = obb.equity.price.historical(
         symbol=ticker,
-        start_date=inicio.strftime("%Y-%m-%d")
+        start_date=inicio
     )
-    return data
+    # Devuelve un DataFrame de pandas con las cotizaciones
+    return data.to_df()
 
 def crear_csv_cotizaciones(nombre_archivo, tickers, fecha_inicio):
     datos_por_fecha = {}
