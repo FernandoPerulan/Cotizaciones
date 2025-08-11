@@ -23,14 +23,10 @@ jobs:
         pip install openbb || true
         pip install gspread oauth2client yfinance gspread-formatting
 
-    - name: Crear archivo de credenciales
-      env:
-        GSHEET_CREDENTIALS_JSON: ${{ secrets.GSHEET_CREDENTIALS_JSON }}
+    - name: Crear archivo credentials.json
       run: |
-        # Si tu secreto contiene \n escapados, esta línea los convierte en saltos de línea reales
-        echo "$GSHEET_CREDENTIALS_JSON" > credentials.json
-        # opcional, verificación rápida
-        echo "Credenciales guardadas, ${PWD}/credentials.json"
+        echo "${{ secrets.GSHEET_CREDENTIALS_JSON }}" > credentials.json
+        sed -i 's/\\n/\n/g' credentials.json
 
     - name: Ejecutar script
       run: python main.py
