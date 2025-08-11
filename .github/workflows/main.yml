@@ -18,8 +18,8 @@ jobs:
 
     - name: Crear archivo credentials.json
       run: |
-        echo "${{secrets.GSHEET_CREDENTIALS_JSON}}" > credentials.json
-    
+        printf '%s' "${{ secrets.GSHEET_CREDENTIALS_JSON }}" > credentials.json
+
     - name: Mostrar contenido de credentials.json
       run: cat credentials.json
 
