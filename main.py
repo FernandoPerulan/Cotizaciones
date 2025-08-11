@@ -1,23 +1,23 @@
 import gspread
 import json
 
-# Leer el archivo de credenciales
+# Leer archivo de credenciales
 with open("credentials.json") as f:
     creds = json.load(f)
 
 # Autenticarse con gspread
 gc = gspread.service_account_from_dict(creds)
 
-# Abrir la hoja de cálculo por nombre (asegurate que sea el correcto)
-spreadsheet = gc.open("cotizaciones")  # Reemplazá con el nombre exacto
+# Abrir la hoja de cálculo (poné el nombre exacto)
+spreadsheet = gc.open("cotizaciones")
 
-# Seleccionar la primera pestaña (worksheet)
+# Seleccionar la primera hoja
 worksheet = spreadsheet.sheet1
 
-# Fila de datos para escribir
+# Datos para agregar (ejemplo)
 fila = ["Fernando", "Probando escritura", "2025-08-07"]
 
-# Agregar la fila al final de la hoja
+# Agregar fila al final
 worksheet.append_row(fila)
 
 print("Fila agregada con éxito.")

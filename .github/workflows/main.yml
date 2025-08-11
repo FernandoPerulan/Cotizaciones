@@ -19,14 +19,13 @@ jobs:
     - name: Instalar dependencias
       run: |
         python -m pip install --upgrade pip
-        # intentamos instalar OpenBB; si falla, el script usará yfinance como fallback
         pip install openbb || true
         pip install gspread oauth2client yfinance gspread-formatting
 
     - name: Crear archivo credentials.json
       run: |
         echo "${{ secrets.GSHEET_CREDENTIALS_JSON }}" > credentials.json
-        sed -i 's/\\n/\n/g' credentials.json
+        sed -e 's/\\n/\n/g' -i credentials.json
 
     - name: Ejecutar script
       run: python main.py
