@@ -1,23 +1,25 @@
+from openbb import obb
+import pandas as pd
 import gspread
 import json
+from datetime import date
 
-# Leer el archivo de credenciales
+# ====== AUTENTICAR GOOGLE SHEETS ======
 with open("credentials.json") as f:
     creds = json.load(f)
-
-# Autenticarse con gspread
 gc = gspread.service_account_from_dict(creds)
+worksheet = gc.open("cotizaciones").sheet1
 
-# Abrir la hoja de cálculo por nombre (asegurate que sea el correcto)
-spreadsheet = gc.open("cotizaciones")  # Reemplazá con el nombre exacto
+# ====== OBTENER COTIZACIONES ======
+tickers = ["AAPL", "GOOGL", "MELI"]  # reemplazá por los que quieras
+fecha_hoy = date.today().isoformat()
 
-# Seleccionar la primera pestaña (worksheet)
-worksheet = spreadsheet.sheet1
+for ticker in tickers:
+    df = obb.equity.price.historical(ticker, start_date="2025-08-01", end_date=fecha_hoy)
+    # Último precio
+    ultimo_precio = df.iloc[-1]["close"]
+    
+    # Escribir en Google Sheets
+    worksheet.append_row([fecha_hoy, ticker, ultimo_precio])
 
-# Fila de datos para escribir
-fila = ["Fernando", "Probando escritura", "2025-08-07"]
-
-# Agregar la fila al final de la hoja
-worksheet.append_row(fila)
-
-print("Fila agregada con éxito.")
+print("Cotizaciones cargadas con éxito.")
