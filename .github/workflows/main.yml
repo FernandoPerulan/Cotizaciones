@@ -17,7 +17,7 @@ jobs:
         python-version: '3.11'
 
     - name: Instalar dependencias
-      run: pip install dropbox
+      run: pip install -r requirements.txt
 
     - name: Ejecutar script de subida
       env:
