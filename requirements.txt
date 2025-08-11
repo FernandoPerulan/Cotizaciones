@@ -1,4 +1,3 @@
 yfinance
-openbb
-dropbox
 pandas
+dropbox

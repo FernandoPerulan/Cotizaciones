@@ -1,44 +1,54 @@
 # cotizaciones.py
+# cotizaciones.py
 import yfinance as yf
+import pandas as pd
+from datetime import datetime
 import csv
-from datetime import datetime, timedelta
 
-def obtener_cotizaciones(tickers, fecha_inicio, fecha_fin):
-    # Descargar cotizaciones con yfinance
-    data = yf.download(tickers, start=fecha_inicio, end=fecha_fin, group_by='ticker', auto_adjust=False)
+def _serie_cierre(ticker, fecha_inicio):
+    """
+    Devuelve una Series (index datetime) de cierres diarios para ticker desde fecha_inicio hasta hoy.
+    fecha_inicio: 'dd-mm-aaaa'
+    """
+    inicio_dt = datetime.strptime(fecha_inicio, "%d-%m-%Y")
+    start = inicio_dt.strftime("%Y-%m-%d")
+    # Descargar solo el ticker (evitamos MultiIndex)
+    df = yf.download(ticker, start=start, end=None, progress=False, auto_adjust=False)
+    if df is None or df.empty:
+        return pd.Series(dtype='float64')
+    # asegurarnos que índice sea datetime y ordenar
+    df.index = pd.to_datetime(df.index)
+    serie = df["Close"].astype(float).round(2)
+    return serie
 
-    # Preparar diccionario con fechas y precios de cierre
-    datos_por_fecha = {}
+def crear_csv_cotizaciones(nombre_archivo, tickers, fecha_inicio):
+    """
+    Genera un CSV con:
+    Fecha (dd-mm-aaaa), TICKER1, TICKER2, ...
+    donde cada celda es el precio de cierre (round 2) o vacío si no hay dato.
+    """
+    # Diccionario de series por ticker
+    series = {}
+    for t in tickers:
+        print(f"Descargando {t} desde {fecha_inicio} ...")
+        s = _serie_cierre(t, fecha_inicio)
+        series[t] = s
 
-    # yfinance devuelve diferente formato si es un solo ticker o varios
-    # Aseguramos que tickers sea lista
-    if isinstance(tickers, str):
-        tickers = [tickers]
+    # Unir en DataFrame por índice de fecha (outer join)
+    if not series:
+        raise ValueError("No se recibieron tickers")
+    df = pd.DataFrame(series)
 
-    for ticker in tickers:
-        # Para un solo ticker, data tiene columnas directas
-        # Para varios tickers, data[ticker] contiene las columnas
+    # Convertir índice a formato dd-mm-aaaa y mover a columna
+    df.index = pd.to_datetime(df.index)
+    df = df.sort_index()  # fechas ascendente (antiguas -> recientes); ajustá si querés inverso
+    df.index = df.index.strftime("%d-%m-%Y")
+    df.reset_index(inplace=True)
+    df.rename(columns={"index": "Fecha"}, inplace=True)
 
-        if len(tickers) == 1:
-            df = data
-        else:
-            df = data[ticker]
+    # Reemplazar NaN por cadena vacía (para CSV)
+    df = df.where(pd.notna(df), "")
 
-        for fecha, fila in df.iterrows():
-            fecha_str = fecha.strftime("%d-%m-%Y")
-            if fecha_str not in datos_por_fecha:
-                datos_por_fecha[fecha_str] = {}
-            cierre = fila.get("Close", None)
-            datos_por_fecha[fecha_str][ticker] = round(cierre, 2) if cierre == cierre else ""
-
-    return datos_por_fecha
-
-def guardar_csv(nombre_archivo, datos, tickers):
-    with open(nombre_archivo, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Fecha"] + tickers)
-        for fecha in sorted(datos.keys(), key=lambda x: datetime.strptime(x, "%d-%m-%Y")):
-            fila = [fecha]
-            for ticker in tickers:
-                fila.append(datos[fecha].get(ticker, ""))
-            writer.writerow(fila)
+    # Guardar CSV con encabezado: Fecha, tickers...
+    df.to_csv(nombre_archivo, index=False, encoding="utf-8", float_format="%.2f")
+    print(f"CSV creado: {nombre_archivo} (filas: {len(df)})")
