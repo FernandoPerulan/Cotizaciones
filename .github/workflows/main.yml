@@ -11,15 +11,26 @@ jobs:
     - name: Clonar el repositorio
       uses: actions/checkout@v4
 
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
     - name: Instalar dependencias
-      run: pip install gspread oauth2client
+      run: |
+        python -m pip install --upgrade pip
+        # intentamos instalar OpenBB; si falla, el script usará yfinance como fallback
+        pip install openbb || true
+        pip install gspread oauth2client yfinance gspread-formatting
 
     - name: Crear archivo de credenciales
+      env:
+        GSHEET_CREDENTIALS_JSON: ${{ secrets.GSHEET_CREDENTIALS_JSON }}
       run: |
-        echo '${{ secrets.GSHEET_CREDENTIALS_JSON }}' > credentials.json
-        sed -i 's/\\\\n/\\n/g' credentials.json
-    
+        # Si tu secreto contiene \n escapados, esta línea los convierte en saltos de línea reales
+        echo "$GSHEET_CREDENTIALS_JSON" > credentials.json
+        # opcional, verificación rápida
+        echo "Credenciales guardadas, ${PWD}/credentials.json"
+
     - name: Ejecutar script
       run: python main.py
-
-
