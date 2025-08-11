@@ -13,29 +13,37 @@ def obtener_cotizaciones(ticker, dias=5):
     return data['Close']  # Solo columna de cierre
 
 def crear_csv_cotizaciones(nombre_archivo, tickers, dias):
-    
-    # Obtener datos para cada ticker
-    precios_por_ticker = {}
-    fechas_set = set()
+    # Diccionario para almacenar todas las cotizaciones por fecha
+    cotizaciones_por_fecha = {}
 
     for ticker in tickers:
         data = obtener_cotizaciones(ticker, dias)
-        precios_por_ticker[ticker] = data
-        fechas_set.update(data.index)
+        for fecha, fila in data.iterrows():
+            fecha_str = fecha.strftime("%d-%m-%Y")
+            cierre = fila['Close']
+            if fecha_str not in cotizaciones_por_fecha:
+                cotizaciones_por_fecha[fecha_str] = {}
+            cotizaciones_por_fecha[fecha_str][ticker] = cierre
 
-    # Ordenar fechas más recientes primero
-    fechas_ordenadas = sorted(fechas_set, reverse=True)
+    # Ordenamos las fechas
+    fechas_ordenadas = sorted(
+        cotizaciones_por_fecha.keys(),
+        key=lambda x: datetime.strptime(x, "%d-%m-%Y")
+    )
 
-    # Crear archivo CSV
+    # Escribir CSV
     with open(nombre_archivo, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        # Encabezado
-        writer.writerow(["Fecha"] + tickers)
+        encabezado = ["Fecha"] + tickers
+        writer.writerow(encabezado)
 
-        for fecha in fechas_ordenadas:
-            fila = [fecha.strftime("%d-%m-%Y")]
+        for fecha_str in fechas_ordenadas:
+            fila = [fecha_str]
             for ticker in tickers:
-                valor = precios_por_ticker[ticker].get(fecha, "")
-                fila.append(round(valor, 2) if valor == valor else "")  # Evita NaN
+                valor = cotizaciones_por_fecha[fecha_str].get(ticker, "")
+                if isinstance(valor, (int, float)):  # Solo redondear si es número
+                    fila.append(round(valor, 2))
+                else:
+                    fila.append("")
             writer.writerow(fila)
 
