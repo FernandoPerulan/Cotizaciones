@@ -1,4 +1,4 @@
 yfinance
-gspread
 openbb
 dropbox
+pandas
