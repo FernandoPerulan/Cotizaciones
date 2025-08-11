@@ -16,13 +16,13 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Mostrar contenido de credentials.json
-      run: cat credentials.json
-
     - name: Crear archivo credentials.json
       run: |
         echo "${{ secrets.GSHEET_CREDENTIALS_JSON }}" > credentials.json
-        sed -e 's/\\n/\n/g' -i credentials.json
+        sed -i 's/\\n/\n/g' credentials.json
+    
+    - name: Mostrar contenido de credentials.json
+      run: cat credentials.json
 
     - name: Ejecutar script
       run: python main.py
