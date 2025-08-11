@@ -16,11 +16,8 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Instalar dependencias
-      run: |
-        python -m pip install --upgrade pip
-        pip install openbb || true
-        pip install gspread oauth2client yfinance gspread-formatting
+    - name: Mostrar contenido de credentials.json
+      run: cat credentials.json
 
     - name: Crear archivo credentials.json
       run: |
