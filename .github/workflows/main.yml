@@ -1,4 +1,4 @@
-name: Actualizar Google Sheet
+name: Actualizar
 
 on:
   workflow_dispatch:
