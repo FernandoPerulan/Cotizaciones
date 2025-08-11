@@ -3,6 +3,7 @@ import yfinance as yf
 from openbb import obb
 import csv
 from datetime import datetime
+import pandas as pd  # <-- IMPORTANTE
 
 def obtener_cotizaciones_yf(ticker, fecha_inicio):
     inicio = datetime.strptime(fecha_inicio, "%d-%m-%Y")
@@ -14,14 +15,11 @@ def obtener_cotizaciones_yf(ticker, fecha_inicio):
     return data
 
 def obtener_cotizaciones_openbb(ticker, fecha_inicio):
-    # Convertir la fecha de dd-mm-aaaa a YYYY-MM-DD
     inicio = datetime.strptime(fecha_inicio, "%d-%m-%Y").strftime("%Y-%m-%d")
-    # Llamar a la API nueva de OpenBB para precios históricos
     data = obb.equity.price.historical(
         symbol=ticker,
         start_date=inicio
     )
-    # Devuelve un DataFrame de pandas con las cotizaciones
     return data.to_df()
 
 def crear_csv_cotizaciones(nombre_archivo, tickers, fecha_inicio):
@@ -34,8 +32,13 @@ def crear_csv_cotizaciones(nombre_archivo, tickers, fecha_inicio):
             fecha_str = fecha.strftime("%d-%m-%Y")
             if fecha_str not in datos_por_fecha:
                 datos_por_fecha[fecha_str] = {}
+
             cierre_yf = fila.get("Close", None)
-            datos_por_fecha[fecha_str][f"{ticker}_YF"] = round(cierre_yf, 2) if cierre_yf == cierre_yf else ""
+            if cierre_yf is None or pd.isna(cierre_yf):
+                valor_yf = ""
+            else:
+                valor_yf = round(float(cierre_yf), 2)
+            datos_por_fecha[fecha_str][f"{ticker}_YF"] = valor_yf
 
         # OpenBB
         data_obb = obtener_cotizaciones_openbb(ticker, fecha_inicio)
@@ -44,8 +47,13 @@ def crear_csv_cotizaciones(nombre_archivo, tickers, fecha_inicio):
                 fecha_str = fecha.strftime("%d-%m-%Y")
                 if fecha_str not in datos_por_fecha:
                     datos_por_fecha[fecha_str] = {}
+
                 cierre_obb = fila.get("Close", None)
-                datos_por_fecha[fecha_str][f"{ticker}_OBB"] = round(cierre_obb, 2) if cierre_obb == cierre_obb else ""
+                if cierre_obb is None or pd.isna(cierre_obb):
+                    valor_obb = ""
+                else:
+                    valor_obb = round(float(cierre_obb), 2)
+                datos_por_fecha[fecha_str][f"{ticker}_OBB"] = valor_obb
 
     # Guardar CSV
     columnas = ["Fecha"] + [f"{t}_YF" for t in tickers] + [f"{t}_OBB" for t in tickers]
@@ -58,3 +66,4 @@ def crear_csv_cotizaciones(nombre_archivo, tickers, fecha_inicio):
             for col in columnas[1:]:
                 fila.append(datos_por_fecha[fecha].get(col, ""))
             writer.writerow(fila)
+    print(f"Archivo {nombre_archivo} creado con éxito.")
